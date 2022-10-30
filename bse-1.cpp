@@ -26,13 +26,13 @@ double funci(double ideh, double xnuy)
     for (int i = 1; i <= n; i++)
     {
         double selfi = (1 - ideh) * selfe[i] + ideh * selfh[i];
-        double ek = nbeta * (s[i] * s[i] * xm / xmi + selfi - xnuy);
+        double ek = nbeta * (abs(s[i]) * xm / xmi + (selfi - xnuy)*pow(-1,0));
         //double ek = nbeta * (s[i] * pow(-1,ieh) * xm / xmi + selfi - xnuy);
         double sum;
         if (ek > 50)
             sum = 0;
         else
-            sum = w[i] * 1. / (exp(ek) + 1);
+            sum = w[i] * 1.*pow(-1,0) / (exp(ek) + 1);
         temp += sum;
     }
     return xn - 1. / pi * temp;
@@ -44,7 +44,7 @@ double rtbis(double func, double x1, double x2, double xacc)
     double ans, dx, xmid;
     double fmid = funci(func, x2);
     double f = funci(func, x1);
-    if (f * fmid < 0)
+    if (f * fmid >= 0)
     {
         if (f < 0.0)
         {
@@ -93,7 +93,7 @@ void gauleg(double x1, double x2, vector<double> &t, vector<double> &w)
             pp = n * (z * p1 - p2) / (z * z - 1.0);
             z1 = z;
             z = z1 - p1 / pp;
-        } while (abs(z - z1) <= eps);
+        } while (abs(z - z1) > eps);
         t[i] = xm - xl * z;
         t[n + 1 - i] = xm + xl * z;
         w[i] = 2.0 * xl / ((1.0 - z * z) * pp * pp);
@@ -115,12 +115,12 @@ void chgvar()
 
 double fermi(double x, double ieh)
 {
-    double emu = nbeta * (x - xnue * (1 - ieh) - xnuh * ieh);
+    double emu = nbeta * (x - xnue * (1 - ieh) + xnuh * ieh);
     //double emu = nbeta * (x* pow(-1,ieh) - xnue * (1 - ieh) - xnuh * ieh);
     if (emu > 50)
         return 0;
     else
-        return 1. / (exp(emu) + 1.);
+        return 1.*pow(-1,0) / (exp(emu) + 1.);
 }
 
 void xeh()
@@ -128,8 +128,8 @@ void xeh()
     double xie = 0, xih = 0;
     for (int i = 1; i <= n; i++)
     {
-        double fei = fermi(s[i] * s[i] * xm / xme, 0);
-        double fhi = fermi(s[i] * s[i] * xm / xmh, 1);
+        double fei = fermi(abs(s[i]) * xm / xme, 0);
+        double fhi = -fermi(abs(s[i]) * xm / xmh, 1);
         xie = xie + w[i] * fei * (1. - fei);
         xih = xih + w[i] * fhi * (1. - fhi);
     }
@@ -137,7 +137,7 @@ void xeh()
     xih = 1 / pi * xih;
     xieh = xie + xih;
 }
-
+// đang sửa
 double vjj(double q)
 {
     double x = q * q / (2. * omega);
@@ -146,7 +146,7 @@ double vjj(double q)
 
 double exe(double p, double q)
 {
-    double fe = fermi((p - q) * (p - q) * xm / xme, 0);
+    double fe = fermi(abs(p - q) *  xm / xme, 0);
     return -vjj(q) * fe;
 }
 
@@ -187,7 +187,7 @@ double core(double p, double q)
 
 double exh(double p, double q)
 {
-    double fh = fermi((p - q) * (p - q) * xm / xmh, 1);
+    double fh = fermi(abs(p - q) * xm / xmh, 1);
     return -vjj(q) * fh;
 }
 
@@ -249,8 +249,8 @@ void se()
         double sum1 = 0, sum2 = 0, sum3 = 0;
         for (int j = 1; j <= n; j++)
         {
-            sum1 += w[j] * (exe(s[i], s[j]) + core(s[i], s[j]));
-            sum2 += w[j] * (exh(s[i], s[j]) + corh(s[i], s[j]));
+            sum1 += w[j] * (exe(s[i], s[j]) + 0*core(s[i], s[j]));
+            sum2 += w[j] * (exh(s[i], s[j]) + 0*corh(s[i], s[j]));
             sum3 += w[j] * (xime(s[i], s[j]) + ximh(s[i], s[j]));
         }
         selfe[i] = 1. / (2 * pi) * sum1;
@@ -260,21 +260,21 @@ void se()
     double sum1 = 0, sum2 = 0, sum3 = 0;
     for (int j = 1; j <= n; j++)
     {
-        sum1 += w[j] * (exe(0.0, s[j]) + core0(s[j]));
+        sum1 += w[j] * (exe(0.0, s[j]) + 0*core0(s[j]));
         sum2 += sum2 + w[j] * (exh(0.0, s[j]) + corh0(s[j]));
     }
 }
 
 void susz(double &hw, vector<complex<double>> &sz)
 {
-    double idx = 1, eei, ehi, fei, fhi, resz, aisz;
+    double idx, eei, ehi, fei, fhi, resz, aisz;
     if (idx == 0)
         for (int i = 1; i <= n; i++)
         {
-            eei = s[i] * s[i] * xm / xme + selfe[i];
-            ehi = s[i] * s[i] * xm / xmh + selfh[i];
+            eei = abs(s[i])  * xm / xme + selfe[i];
+            ehi = abs(s[i]) * xm / xmh - selfh[i];
             fei = fermi(eei, 0);
-            fhi = fermi(ehi, 1);
+            fhi = -fermi(ehi, 1);
             resz = (hw - eei - ehi) * (fei + fhi - 1.) / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             aisz = (1. - fei - fhi) * dam / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             sz[i].real(resz);
@@ -283,10 +283,10 @@ void susz(double &hw, vector<complex<double>> &sz)
     else if (idx == 1)
         for (int i = 1; i <= n; i++)
         {
-            eei = s[i] * s[i] * xm / xme + selfe[i];
-            ehi = s[i] * s[i] * xm / xmh + selfh[i];
+            eei = abs(s[i])  * xm / xme + selfe[i];
+            ehi = abs(s[i])  * xm / xmh - selfh[i];
             fei = fermi(eei, 0);
-            fhi = fermi(ehi, 1);
+            fhi = -fermi(ehi, 1);
             resz = (hw - eei - ehi) * (fei + fhi - 1.) / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             aisz = (1. - fei - fhi) * dam / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             sz[i].real(resz);
@@ -305,18 +305,18 @@ void vsm(vector<vector<complex<double>>> &xv, double &hw)
                 xv[i][j] = {0.0, 0.0};
             else
             {
-                double eei = s[i] * s[i] * xm / xme + selfe[i];
-                double ehi = s[i] * s[i] * xm / xmh + selfh[i];
-                double eej = s[j] * s[j] * xm / xme + selfe[j];
-                double ehj = s[j] * s[j] * xm / xmh + selfh[j];
+                double eei = abs(s[i]) * xm / xme + selfe[i];
+                double ehi = abs(s[i]) * xm / xmh - selfh[i];
+                double eej = abs(s[j]) * xm / xme + selfe[j];
+                double ehj = abs(s[j]) * xm / xmh - selfh[j];
                 // double eei = s[i] * xm / xme + selfe[i];
                 // double ehi = s[i] * xm / xmh + selfh[i];
                 // double eej = s[j] * xm / xme + selfe[j];
                 // double ehj = s[j] * xm / xmh + selfh[j];
                 double fei = fermi(eei, 0);
                 double fej = fermi(eej, 0);
-                double fhi = fermi(ehi, 1);
-                double fhj = fermi(ehj, 1);
+                double fhi = -fermi(ehi, 1);
+                double fhj = -fermi(ehj, 1);
                 double anehi = 1.0 - fei - fhi;
                 double anehj = 1.0 - fej - fhj;
                 double sij = s[i] - s[j];
@@ -444,7 +444,7 @@ int main()
     string outfile;
     // cout << "Harmonic frequency (in Rydberg):";
     // cin >> omega;
-    omega = 5;
+    omega = 10;
     // cout << "Damping rate (in Rydberg):";
     // cin >> dam;
     dam = 0.5;
@@ -465,8 +465,8 @@ int main()
     // cout << "hw-Eg: min  max  step_number(max200)";
     // cin >> x1 >> x2 >> m;
     x1 = -10.0, x2 = 10.0, m = 1;
-    xme = 0.067, xmh = 0.457; //xme = 1, xmh = -1, xm = sqrt(abs(nstar)*B); <Change Here>
-    xm = xme * xmh / (xme + xmh);
+    xme = 1., xmh = 1.; //xme = 0.67, xmh = 0.4, xm = sqrt(abs(nstar)*B); <Change Here>
+    xm = sqrt(6);//xme * xmh / (xme + xmh);
     double e0 = 4.6;
     nbeta = e0 / (0.0862 * tem);
     for (int i = 1; i <= n; i++)
