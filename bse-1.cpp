@@ -5,8 +5,7 @@
 #include <complex>
 using namespace std;
 
-//break when any float is NaN
-
+//break when any float is Na
 
 #define pi 3.14159265358979323846
 #define nmax 2000
@@ -674,11 +673,12 @@ int main()
     run(x1, x2, m, hw, ab, re);
     ofstream ofile(outfile);
     ofile << "omega=" << omega << "; dam=" << dam << "; tem=" << tem << "; xn=" << xn << endl;
-    //ofstream em("set.txt");
+    ofstream kq("kq.txt");
     for (int i = 1; i <= m + 1; i++)
     {
         double em = g(hw[i] - xnu) * ab[i];
         ofile << hw[i] << " " << re[i] << " " << ab[i] << " " << em << endl;
+        kq << hw[i] << " " << em << endl;
     }
     ofstream sefile("se.txt");
     for (int i = 1; i <= n; i++)
