@@ -26,16 +26,19 @@ double funci(double ideh, double xnuy)
     for (int i = 1; i <= n; i++)
     {
         double selfi = (1 - ideh) * selfe[i] + ideh * selfh[i];
-        double ek = nbeta * (abs(s[i]) * xm / xmi + (selfi - xnuy)*pow(-1,0));
+        double ek = nbeta * (abs(s[i]) * xm / xmi + selfi - xnuy);
+        double ek1 = nbeta * (abs(s[i]) * xm / xmi - selfi + xnuy);
+        double fe = 1./ (exp(ek) + 1);
+        double fh = 1./ (exp(ek1) + 1);
         //double ek = nbeta * (s[i] * pow(-1,ieh) * xm / xmi + selfi - xnuy);
         double sum;
         if (ek > 50)
             sum = 0;
         else
-            sum = w[i] * 1.*pow(-1,0) / (exp(ek) + 1);
+            sum = w[i] *(fe-fh*(1.-fh))*s[i];
         temp += sum;
     }
-    return xn - 1. / pi * temp;
+    return xn - 1. / (2*pi) * temp;
 }
 
 double rtbis(double func, double x1, double x2, double xacc)
@@ -44,7 +47,7 @@ double rtbis(double func, double x1, double x2, double xacc)
     double ans, dx, xmid;
     double fmid = funci(func, x2);
     double f = funci(func, x1);
-    if (f * fmid >= 0)
+    if (f * fmid <= 0)
     {
         if (f < 0.0)
         {
@@ -104,7 +107,7 @@ void gauleg(double x1, double x2, vector<double> &t, vector<double> &w)
 void chgvar()
 {
     vector<double> z(n), v(n);
-    gauleg(-1., 1., z, v); //gauleg(0, 1, z, v);
+    gauleg(0., 1., z, v); //gauleg(0, 1, z, v);
     double alpha = 0.5;
     for (int i = 1; i <= n; i++)
     {
@@ -120,7 +123,7 @@ double fermi(double x, double ieh)
     if (emu > 50)
         return 0;
     else
-        return 1.*pow(-1,0) / (exp(emu) + 1.);
+        return 1. / (exp(emu) + 1.);
 }
 
 void xeh()
@@ -129,25 +132,201 @@ void xeh()
     for (int i = 1; i <= n; i++)
     {
         double fei = fermi(abs(s[i]) * xm / xme, 0);
-        double fhi = -fermi(abs(s[i]) * xm / xmh, 1);
+        double fhi = fermi(abs(s[i]) * xm / xmh, 1);
         xie = xie + w[i] * fei * (1. - fei);
-        xih = xih + w[i] * fhi * (1. - fhi);
+        xih = xih + w[i] * fhi*(1.-fhi) * (1. - fhi*(1.-fhi));
     }
-    xie = 1 / pi * xie;
-    xih = 1 / pi * xih;
+    xie = 1 / (2.*pi) * xie;
+    xih = 1 / (2.*pi) * xih;
     xieh = xie + xih;
+}
+// cac ham ellip
+double rf(double x, double y, double z) 
+{
+double ERRTOL=0.0025, THIRD=1.0/3.0,C1=1.0/24.0, C2=0.1,
+C3=3.0/44.0, C4=1.0/14.0;
+double TINY=1.5e-38,
+BIG=3.E-37;
+double alamb,ave,delx,dely,delz,e2,e3,sqrtx,sqrty,sqrtz,xt,yt,zt;
+if (min(min(x,y),z) < 0.0 || min(min(x+y,x+z),y+z) < TINY ||
+max(max(x,y),z) > BIG);
+xt=x;
+yt=y;
+zt=z;
+do {
+sqrtx=sqrt(xt);
+sqrty=sqrt(yt);
+sqrtz=sqrt(zt);
+alamb=sqrtx*(sqrty+sqrtz)+sqrty*sqrtz;
+xt=0.25*(xt+alamb);
+yt=0.25*(yt+alamb);
+zt=0.25*(zt+alamb);
+ave=THIRD*(xt+yt+zt);
+delx=(ave-xt)/ave;
+dely=(ave-yt)/ave;
+delz=(ave-zt)/ave;
+} while (max(max(abs(delx),abs(dely)),abs(delz)) > ERRTOL);
+e2=delx*dely-delz*delz;
+e3=delx*dely*delz;
+return (1.0+(C1*e2-C2-C3*e3)*e2+C4*e3)/sqrt(ave);
+}
+double rd(double x,double y, double z) 
+{
+double ERRTOL=0.0015, C1=3.0/14.0, C2=1.0/6.0, C3=9.0/22.0,
+C4=3.0/26.0, C5=0.25*C3, C6=1.5*C4;
+double TINY=1.5e-38, BIG=3.E-37;
+double alamb,ave,delx,dely,delz,ea,eb,ec,ed,ee,fac,sqrtx,sqrty,
+sqrtz,sum,xt,yt,zt;
+if (min(x,y) < 0.0 || min(x+y,z) < TINY || max(max(x,y),z) > BIG);
+xt=x;
+yt=y;
+zt=z;
+sum=0.0;
+fac=1.0;
+do {
+sqrtx=sqrt(xt);
+sqrty=sqrt(yt);
+sqrtz=sqrt(zt);
+alamb=sqrtx*(sqrty+sqrtz)+sqrty*sqrtz;
+sum += fac/(sqrtz*(zt+alamb));
+fac=0.25*fac;
+xt=0.25*(xt+alamb);
+yt=0.25*(yt+alamb);
+zt=0.25*(zt+alamb);
+ave=0.2*(xt+yt+3.0*zt);
+delx=(ave-xt)/ave;
+dely=(ave-yt)/ave;
+delz=(ave-zt)/ave;
+} while (max(max(abs(delx),abs(dely)),abs(delz)) > ERRTOL);
+ea=delx*dely;
+eb=delz*delz;
+ec=ea-eb;
+ed=ea-6.0*eb;
+ee=ed+ec+ec;
+return 3.0*sum+fac*(1.0+ed*(-C1+C5*ed-C6*delz*ee)
++delz*(C2*ee+delz*(-C3*ec+delz*C4*ea)))/(ave*sqrt(ave));
+}
+double rc(double x,double y)
+ {
+ 	double ERRTOL=0.0012, THIRD=1.0/3.0, C1=0.3, C2=1.0/7.0,
+C3=0.375, C4=9.0/22.0;
+double TINY=1.5e-38,
+BIG=3.E-37, COMP1=2.236/sqrt(TINY),
+COMP2=sqrt(TINY*BIG)/25.0;
+double alamb,ave,s,w,xt,yt;
+if (x < 0.0 || y == 0.0 || (x+abs(y)) < TINY || (x+abs(y)) > BIG ||
+(y<-COMP1 && x > 0.0 && x < COMP2));
+if (y > 0.0) {
+xt=x;
+yt=y;
+w=1.0;
+} else {
+xt=x-y;
+yt= -y;
+w=sqrt(x)/sqrt(xt);
+}
+do {
+alamb=2.0*sqrt(xt)*sqrt(yt)+yt;
+xt=0.25*(xt+alamb);
+yt=0.25*(yt+alamb);
+ave=THIRD*(xt+yt+yt);
+s=(yt-ave)/ave;
+} while (abs(s) > ERRTOL);
+return w*(1.0+s*s*(C1+s*(C2+s*(C3+s*C4))))/sqrt(ave);
+}
+
+double rj(double x, double y, double z, double p)
+{
+	double ERRTOL=0.0015, C1=3.0/14.0, C2=1.0/3.0, C3=3.0/22.0,
+C4=3.0/26.0, C5=0.75*C3, C6=1.5*C4, C7=0.5*C2, C8=C3+C3;
+double TINY=pow(5.0*numeric_limits<double>::min(),1./3.),
+BIG=0.3*pow(0.2*numeric_limits<double>::max(),1./3.);
+double a,alamb,alpha,ans,ave,b,beta,delp,delx,dely,delz,ea,eb,ec,ed,ee,
+fac,pt,rcx,rho,sqrtx,sqrty,sqrtz,sum,tau,xt,yt,zt;
+if (min(min(x,y),z) < 0.0 || min(min(x+y,x+z),min(y+z,abs(p))) < TINY
+|| max(max(x,y),max(z,abs(p))) > BIG);
+sum=0.0;
+fac=1.0;
+if (p > 0.0) {
+xt=x;
+yt=y;
+zt=z;
+pt=p;
+} else {
+xt=min(min(x,y),z);
+zt=max(max(x,y),z);
+yt=x+y+z-xt-zt;
+a=1.0/(yt-p);
+b=a*(zt-yt)*(yt-xt);
+pt=yt+b;
+rho=xt*zt/yt;
+tau=p*pt/yt;
+rcx=rc(rho,tau);
+}
+do {
+sqrtx=sqrt(xt);
+sqrty=sqrt(yt);
+sqrtz=sqrt(zt);
+alamb=sqrtx*(sqrty+sqrtz)+sqrty*sqrtz;
+alpha=sqrt(pt*(sqrtx+sqrty+sqrtz)+sqrtx*sqrty*sqrtz);
+beta=pt*sqrt(pt+alamb);
+sum += fac*rc(alpha,beta);
+fac=0.25*fac;
+xt=0.25*(xt+alamb);
+yt=0.25*(yt+alamb);
+zt=0.25*(zt+alamb);
+pt=0.25*(pt+alamb);
+ave=0.2*(xt+yt+zt+pt+pt);
+delx=(ave-xt)/ave;
+dely=(ave-yt)/ave;
+delz=(ave-zt)/ave;
+delp=(ave-pt)/ave;
+} while (max(max(abs(delx),abs(dely)),
+max(abs(delz),abs(delp))) > ERRTOL);
+ea=delx*(dely+delz)+dely*delz;
+eb=delx*dely*delz;
+ec=delp*delp;
+ed=ea-3.0*ec;
+ee=eb+2.0*delp*(ea-ec);
+ans=3.0*sum+fac*(1.0+ed*(-C1+C5*ed-C6*ee)+eb*(C7+delp*(-C8+delp*C4))
++delp*ea*(C2-delp*C3)-C2*delp*ec)/(ave*sqrt(ave));
+if (p <= 0.0) ans=a*(b*ans+3.0*(rcx-rf(xt,yt,zt)));
+return ans;
+}
+
+// ham elliptic E(pi/2,x)
+double ellf(double ak) 
+{
+	return rf(0.,abs((1.0-ak)*(1.0+ak)),1.0);
+}
+
+
+// ham elliptic E1(pi/2,n=1,x)
+
+double ellpi(double ak)
+{
+	double cc,enss,q,s,phi,en;
+	phi = 3.14156/2;
+	en = 0.;
+	s=sin(phi);
+	enss=en*s*s;
+	cc=sqrt(cos(phi));
+	q=(1.0-s*ak)*(1.0+s*ak);
+	return s*(rf(cc,abs(q),1.0)-enss*rj(cc,abs(q),1.0,1.0+enss)/3.0);
 }
 // đang sửa
 double vjj(double q)
 {
-    double x = q * q / (2. * omega);
-    return 2. * cyl_bessel_k(0, x);
+    double x = q;
+    return 12.5 *ellf(x);
 }
 
 double exe(double p, double q)
 {
-    double fe = fermi(abs(p - q) *  xm / xme, 0);
-    return -vjj(q) * fe;
+    double x = q*q;
+    double y = 4./(1./p + 1./q);
+    double fe = fermi(abs(q) *  xm / xme, 0);
+    return -vjj(y)*(1-x)*(exp(-x))*q*fe/abs(p+q);
 }
 
 double veh(double q)
@@ -187,8 +366,10 @@ double core(double p, double q)
 
 double exh(double p, double q)
 {
-    double fh = fermi(abs(p - q) * xm / xmh, 1);
-    return -vjj(q) * fh;
+    double x = q*q;
+    double y = 4./(1./q + 1./p);
+    double fh = fermi(abs(q) *  xm / xme, 1);
+    return -vjj(y)*(2.-x)*(exp(-x))*q*fh*(1.-fh)/abs(p+q);
 }
 
 double corh(double p, double q)
@@ -261,7 +442,7 @@ void se()
     for (int j = 1; j <= n; j++)
     {
         sum1 += w[j] * (exe(0.0, s[j]) + 0*core0(s[j]));
-        sum2 += sum2 + w[j] * (exh(0.0, s[j]) + corh0(s[j]));
+        sum2 += sum2 + w[j] * (exh(0.0, s[j]) +0* corh0(s[j]));
     }
 }
 
@@ -274,7 +455,7 @@ void susz(double &hw, vector<complex<double>> &sz)
             eei = abs(s[i])  * xm / xme + selfe[i];
             ehi = abs(s[i]) * xm / xmh - selfh[i];
             fei = fermi(eei, 0);
-            fhi = -fermi(ehi, 1);
+            fhi = (1.-fermi(ehi, 1))*fermi(ehi, 1);
             resz = (hw - eei - ehi) * (fei + fhi - 1.) / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             aisz = (1. - fei - fhi) * dam / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             sz[i].real(resz);
@@ -286,7 +467,7 @@ void susz(double &hw, vector<complex<double>> &sz)
             eei = abs(s[i])  * xm / xme + selfe[i];
             ehi = abs(s[i])  * xm / xmh - selfh[i];
             fei = fermi(eei, 0);
-            fhi = -fermi(ehi, 1);
+            fhi = (1.-fermi(ehi, 1))*fermi(ehi, 1);
             resz = (hw - eei - ehi) * (fei + fhi - 1.) / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             aisz = (1. - fei - fhi) * dam / ((hw - eei - ehi) * (hw - eei - ehi) + dam * dam);
             sz[i].real(resz);
@@ -315,12 +496,13 @@ void vsm(vector<vector<complex<double>>> &xv, double &hw)
                 // double ehj = s[j] * xm / xmh + selfh[j];
                 double fei = fermi(eei, 0);
                 double fej = fermi(eej, 0);
-                double fhi = -fermi(ehi, 1);
-                double fhj = -fermi(ehj, 1);
+                double fhi = (1.-fermi(ehi, 1))*fermi(ehi, 1);
+                double fhj = (1.-fermi(ehj, 1))*fermi(ehj, 1);
                 double anehi = 1.0 - fei - fhi;
                 double anehj = 1.0 - fej - fhj;
                 double sij = s[i] - s[j];
-                double vveh = veh(sij);
+                double sij1 = 4./(1./s[i] + 1./s[j]);
+                double vveh = veh(sij1)/abs(s[i] + s[j])*(1-s[i]*s[i])*(exp(-s[i]*s[i]))*s[i];
                 double wwpl = wpl(sij);
                 double wwq = wq(sij);
                 double gg = g(wwq);
@@ -347,7 +529,7 @@ void vsm(vector<vector<complex<double>>> &xv, double &hw)
                 double aress = 1. / (anehi * anehj) * wwpl * wwpl / (2 * wwq) * (t[1] + t[2] + t[3] + t[4] + ares[5] + ares[6] + ares[7] + ares[8]);
                 double aimss = 1. / (anehi * anehj) * wwpl * wwpl / (2 * wwq) * (aims[5] + aims[6] + aims[7] + aims[8]);
                 ss = {aress, 0 * aimss};
-                xv[i][j] = vveh * (ss + 1.);
+                xv[i][j] = vveh * (ss*0. + 1.);
             }
         }
     ofstream vsmfile("vsm.txt");
@@ -479,6 +661,7 @@ int main()
     xnue = rtbis(0, -1.0e+02, 1.0e+02, 1.0e-6);
     xnuh = rtbis(1, -1.0e+02, 1.0e+02, 1.0e-6);
     cout << "Chemical potential: " << xnue + xnuh << endl;
+    //cout << "eliptic: " <<rf(0, 0.3, 1.)<< endl;
     // Renormalized chemical potential:
     xeh();
     se();
@@ -491,6 +674,7 @@ int main()
     run(x1, x2, m, hw, ab, re);
     ofstream ofile(outfile);
     ofile << "omega=" << omega << "; dam=" << dam << "; tem=" << tem << "; xn=" << xn << endl;
+    //ofstream em("set.txt");
     for (int i = 1; i <= m + 1; i++)
     {
         double em = g(hw[i] - xnu) * ab[i];
