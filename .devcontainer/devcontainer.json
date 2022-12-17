@@ -15,10 +15,13 @@
     		"explorer.sortOrder": "type",
     		"search.sortOrder": "type"
 	},
-	"postCreateCommand": "sudo apt update && sudo apt upgrade -y",
-	"extensions": [],
+	"postCreateCommand": "sudo apt update && sudo apt full-upgrade -y",
+	"extensions": ["ms-vscode.cpptools-extension-pack"],
 	"remoteUser": "vscode",
 	"features": {
-		"powershell": "latest"
+		"powershell": "latest",
+		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+       			"packages": "build-essential"
+    		}
 	}
 }
