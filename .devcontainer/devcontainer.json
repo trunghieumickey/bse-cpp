@@ -20,8 +20,8 @@
 	"remoteUser": "vscode",
 	"features": {
 		"powershell": "latest",
-		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-       			"packages": "build-essential"
+		"ghcr.io/rocker-org/devcontainer-features/apt-packages:latest": {
+       			"packages": "build-essential,gdb"
     		}
 	}
 }
