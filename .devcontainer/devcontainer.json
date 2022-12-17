@@ -1,0 +1,24 @@
+{
+	"name": "Ubuntu",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": { "VARIANT": "ubuntu-22.04" }
+	},
+	"settings": {
+		"files.exclude": {
+			"**/.devcontainer": true
+		},
+		"workbench.colorTheme": "Default Dark+",
+		"files.autoSave": "off",
+		"window.menuBarVisibility": "classic",
+		"files.insertFinalNewline": true,
+    		"explorer.sortOrder": "type",
+    		"search.sortOrder": "type"
+	},
+	"postCreateCommand": "sudo apt update && sudo apt upgrade -y",
+	"extensions": [],
+	"remoteUser": "vscode",
+	"features": {
+		"powershell": "latest"
+	}
+}
